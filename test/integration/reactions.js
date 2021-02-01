@@ -7,7 +7,6 @@ import {
 	getTestClient,
 	getTestClientForUser,
 	setupTestChannel,
-	sleep,
 } from './utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -446,6 +445,40 @@ describe('When reading own_reactions from the events', () => {
 		});
 		await Promise.all([member, owner]);
 		expect(ownerEvent.message.own_reactions.length).to.be.equal(1);
+		expect(ownerEvent.message.own_reactions[0].user_id).to.be.equal(chat.owner.id);
+		expect(memberEvent.message.own_reactions.length).to.be.equal(0);
+	});
+	it('Owner reacts with enforce_unique, member sees no own_reactions', async () => {
+		let memberEvent;
+		let ownerEvent;
+		await chat.member.channel.watch();
+		await chat.owner.channel.watch();
+		const member = new Promise((resolve) => {
+			chat.member.channel.on('reaction.updated', (e) => {
+				memberEvent = e;
+				resolve();
+			});
+		});
+		const owner = new Promise((resolve) => {
+			chat.owner.channel.on('reaction.updated', (e) => {
+				ownerEvent = e;
+				resolve();
+			});
+		});
+		await chat.owner.channel.sendReaction(message.id, {
+			type: 'like',
+		});
+		await chat.owner.channel.sendReaction(
+			message.id,
+			{
+				type: 'repost',
+			},
+			null,
+			true,
+		);
+		await Promise.all([member, owner]);
+		expect(ownerEvent.message.own_reactions.length).to.be.equal(1);
+		expect(ownerEvent.message.own_reactions[0].user_id).to.be.equal(chat.owner.id);
 		expect(memberEvent.message.own_reactions.length).to.be.equal(0);
 	});
 });

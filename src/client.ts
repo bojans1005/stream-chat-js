@@ -1205,19 +1205,17 @@ export class StreamChat<
   ) => {
     const client = this;
     // gather and call the listeners
-    const listeners: Array<
-      (
-        event: Event<
-          AttachmentType,
-          ChannelType,
-          CommandType,
-          EventType,
-          MessageType,
-          ReactionType,
-          UserType
-        >,
-      ) => void
-    > = [];
+    const listeners: Array<(
+      event: Event<
+        AttachmentType,
+        ChannelType,
+        CommandType,
+        EventType,
+        MessageType,
+        ReactionType,
+        UserType
+      >,
+    ) => void> = [];
     if (client.listeners.all) {
       listeners.push(...client.listeners.all);
     }
