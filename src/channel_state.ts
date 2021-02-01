@@ -381,6 +381,11 @@ export class ChannelState<
 
         // @ts-expect-error - ImmutableArray.set exists in the documentation but not in the DefinitelyTyped types
         this.threads = this.threads.set(parent_id, thread.set(i, messageWithReaction));
+
+        const mutableMsg = messageWithReaction.asMutable({ deep: true });
+        message.own_reactions = mutableMsg.own_reactions;
+        message.latest_reactions = mutableMsg.latest_reactions;
+        message.reaction_counts = mutableMsg.reaction_counts;
         break;
       }
     }
@@ -399,6 +404,11 @@ export class ChannelState<
 
         // @ts-expect-error - ImmutableArray.set exists in the documentation but not in the DefinitelyTyped types
         this.messages = messages.set(i, messageWithReaction);
+
+        const mutableMsg = messageWithReaction.asMutable({ deep: true });
+        message.own_reactions = mutableMsg.own_reactions;
+        message.latest_reactions = mutableMsg.latest_reactions;
+        message.reaction_counts = mutableMsg.reaction_counts;
         break;
       }
     }
@@ -517,6 +527,11 @@ export class ChannelState<
 
         // @ts-expect-error - ImmutableArray.set exists in the documentation but not in the DefinitelyTyped types
         this.threads = this.threads.set(parent_id, thread.set(i, messageWithReaction));
+
+        const mutableMsg = messageWithReaction.asMutable({ deep: true });
+        message.own_reactions = mutableMsg.own_reactions;
+        message.latest_reactions = mutableMsg.latest_reactions;
+        message.reaction_counts = mutableMsg.reaction_counts;
         break;
       }
     }
@@ -536,6 +551,11 @@ export class ChannelState<
 
         // @ts-expect-error - ImmutableArray.set exists in the documentation but not in the DefinitelyTyped types
         this.messages = messages.set(i, messageWithReaction);
+
+        const mutableMsg = messageWithReaction.asMutable({ deep: true });
+        message.own_reactions = mutableMsg.own_reactions;
+        message.latest_reactions = mutableMsg.latest_reactions;
+        message.reaction_counts = mutableMsg.reaction_counts;
         break;
       }
     }

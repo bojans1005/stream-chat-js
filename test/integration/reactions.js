@@ -2,7 +2,13 @@
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { expectHTTPErrorCode, getTestClient, getTestClientForUser } from './utils';
+import {
+	expectHTTPErrorCode,
+	getTestClient,
+	getTestClientForUser,
+	setupTestChannel,
+	sleep,
+} from './utils';
 import { v4 as uuidv4 } from 'uuid';
 
 const expect = chai.expect;
@@ -405,5 +411,41 @@ describe('Reactions', () => {
 			expect(response.message.own_reactions.length).to.eq(1);
 			expect(response.message.reaction_counts.adore).to.eq(1);
 		});
+	});
+});
+
+describe('When reading own_reactions from the events', () => {
+	let chat;
+	let message;
+	before(async () => {
+		chat = await setupTestChannel('messaging');
+		const resp = await chat.owner.channel.sendMessage({
+			text: 'Hello',
+		});
+		message = resp.message;
+	});
+	it('Owner reacts, member sees no own_reactions', async () => {
+		let memberEvent;
+		let ownerEvent;
+		await chat.member.channel.watch();
+		await chat.owner.channel.watch();
+		const member = new Promise((resolve) => {
+			chat.member.channel.on('reaction.new', (e) => {
+				memberEvent = e;
+				resolve();
+			});
+		});
+		const owner = new Promise((resolve) => {
+			chat.owner.channel.on('reaction.new', (e) => {
+				ownerEvent = e;
+				resolve();
+			});
+		});
+		await chat.owner.channel.sendReaction(message.id, {
+			type: 'like',
+		});
+		await Promise.all([member, owner]);
+		expect(ownerEvent.message.own_reactions.length).to.be.equal(1);
+		expect(memberEvent.message.own_reactions.length).to.be.equal(0);
 	});
 });

@@ -1,6 +1,7 @@
 import { StreamChat } from '../../src';
 import chai from 'chai';
 import http from 'http';
+import { v4 as uuidv4 } from 'uuid';
 const expect = chai.expect;
 require('dotenv').config();
 const apiKey = process.env.STREAM_API_KEY;
@@ -209,4 +210,62 @@ export function randomUnicodeString(length) {
 		// 1/4 of the characters are regular azAZ09
 		return azAZ09[Math.floor(Math.random() * azAZ09.length)];
 	}).join('');
+}
+
+// setupTestChannel sets up all possible client and channel objects for given channel type
+// set createOnServerSide=true to execute channel creation from the server side
+export async function setupTestChannel(type, createOnServerSide, custom = {}) {
+	const ownerID = uuidv4();
+	const memberID = uuidv4();
+	const modID = uuidv4();
+	const userID = uuidv4();
+	const ownerClient = await getTestClientForUser(ownerID);
+	const memberClient = await getTestClientForUser(memberID);
+	const modClient = await getTestClientForUser(modID);
+	const userClient = await getTestClientForUser(userID);
+	const serverSideClient = getServerTestClient();
+	const ownerChannel = ownerClient.channel(type, uuidv4(), {
+		...custom,
+		members: [ownerID, modID, memberID],
+	});
+	const memberChannel = memberClient.channel(ownerChannel.type, ownerChannel.id);
+	const modChannel = modClient.channel(ownerChannel.type, ownerChannel.id);
+	const serverSideChannel = serverSideClient.channel(
+		ownerChannel.type,
+		ownerChannel.id,
+		{ created_by_id: ownerID },
+	);
+	const userChannel = userClient.channel(ownerChannel.type, ownerChannel.id);
+	if (createOnServerSide) {
+		await serverSideChannel.create();
+	} else {
+		await ownerChannel.create();
+	}
+	await serverSideChannel.addModerators([modID]);
+	return {
+		owner: {
+			id: ownerID,
+			client: ownerClient,
+			channel: ownerChannel,
+		},
+		member: {
+			id: memberID,
+			client: memberClient,
+			channel: memberChannel,
+		},
+		mod: {
+			id: modID,
+			client: modClient,
+			channel: modChannel,
+		},
+		user: {
+			id: userID,
+			client: await userClient,
+			channel: userChannel,
+		},
+		serverSide: {
+			client: serverSideClient,
+			channel: serverSideChannel,
+		},
+	};
 }

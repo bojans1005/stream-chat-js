@@ -1,11 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
-
-import {
-	expectHTTPErrorCode,
-	getServerTestClient,
-	getTestClientForUser,
-	sleep,
-} from './utils';
+import { expectHTTPErrorCode, sleep, setupTestChannel } from './utils';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -24,64 +17,6 @@ Promise.config({
 		wForgottenReturn: false,
 	},
 });
-
-// setupTestChannel sets up all possible client and channel objects for given channel type
-// set createOnServerSide=true to execute channel creation from the server side
-async function setupTestChannel(type, createOnServerSide, custom = {}) {
-	const ownerID = uuidv4();
-	const memberID = uuidv4();
-	const modID = uuidv4();
-	const userID = uuidv4();
-	const ownerClient = await getTestClientForUser(ownerID);
-	const memberClient = await getTestClientForUser(memberID);
-	const modClient = await getTestClientForUser(modID);
-	const userClient = await getTestClientForUser(userID);
-	const serverSideClient = getServerTestClient();
-	const ownerChannel = ownerClient.channel(type, uuidv4(), {
-		...custom,
-		members: [ownerID, modID, memberID],
-	});
-	const memberChannel = memberClient.channel(ownerChannel.type, ownerChannel.id);
-	const modChannel = modClient.channel(ownerChannel.type, ownerChannel.id);
-	const serverSideChannel = serverSideClient.channel(
-		ownerChannel.type,
-		ownerChannel.id,
-		{ created_by_id: ownerID },
-	);
-	const userChannel = userClient.channel(ownerChannel.type, ownerChannel.id);
-	if (createOnServerSide) {
-		await serverSideChannel.create();
-	} else {
-		await ownerChannel.create();
-	}
-	await serverSideChannel.addModerators([modID]);
-	return {
-		owner: {
-			id: ownerID,
-			client: ownerClient,
-			channel: ownerChannel,
-		},
-		member: {
-			id: memberID,
-			client: memberClient,
-			channel: memberChannel,
-		},
-		mod: {
-			id: modID,
-			client: modClient,
-			channel: modChannel,
-		},
-		user: {
-			id: userID,
-			client: await userClient,
-			channel: userChannel,
-		},
-		serverSide: {
-			client: serverSideClient,
-			channel: serverSideChannel,
-		},
-	};
-}
 
 function testMessagePinPermissions(type, createOnServerSide, matrix) {
 	let chat;
