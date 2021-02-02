@@ -414,9 +414,12 @@ export class Channel<
     if (!reaction || Object.keys(reaction).length === 0) {
       throw Error(`Reaction object is missing`);
     }
+
+    const { skip_push, ...rest } = reaction;
     const body = {
-      reaction,
+      reaction: rest,
       enforce_unique,
+      skip_push,
     };
     if (user_id != null) {
       body.reaction = { ...reaction, user: { id: user_id } as UserResponse<UserType> };

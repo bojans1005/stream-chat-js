@@ -1527,6 +1527,7 @@ export type MessageBase<
   pinned?: boolean;
   quoted_message_id?: string;
   show_in_channel?: boolean;
+  skip_push?: boolean;
   text?: string;
   user?: UserResponse<UserType> | null;
   user_id?: string;
@@ -1585,6 +1586,7 @@ export type Reaction<
   type: string;
   message_id?: string;
   score?: number;
+  skip_push?: boolean;
   user?: UserResponse<UserType> | null;
   user_id?: string;
 };
